@@ -4,6 +4,8 @@ import zipfile
 from typing import List, Optional, Union
 from gitignore_parser import parse_gitignore
 
+__version__ = "0.0.4"
+
 
 def match_git(path: str) -> bool:
     """simple method for determining if a path is a git-related file or directory"""
@@ -47,6 +49,7 @@ def check_ignore(
     extra_ignore: Optional[List[str]] = None,
     regexp_ignore: Optional[List[str]] = None,
 ) -> bool:
+    """returns True if any requested conditions are met"""
     if ignore_git:
         if match_git(path):
             return True
@@ -71,6 +74,7 @@ def freezedry(
     extra_ignore: Optional[List[str]] = None,
     regexp_ignore: Optional[List[str]] = None,
     ignore_by_directory: bool = True,
+    verbose: bool = True,
     **zipfile_kwargs,
 ):
     """
@@ -92,6 +96,7 @@ def freezedry(
     If use_gitignore=True and gitignore_path is not provided, will use <directory_path>/.gitignore
     If ignore_by_directory=True, then will ignore any files or directories that are children of a
     directory that meets ignore criterion (otherwise will search in that directory for any files).
+    If verbose=True, will print the name of each file that is stored.
 
     Any extra kwargs will be passed to the zipfile constructor method.
     """
@@ -137,8 +142,13 @@ def freezedry(
                 archive_names.append(os.path.relpath(file, directory_path))
 
     # create zip file
-    zipfile_arguments = dict(mode="w", compression=zipfile.ZIP_DEFLATED).update(zipfile_kwargs)
+    zipfile_arguments = dict(mode="w", compression=zipfile.ZIP_DEFLATED)
+    zipfile_arguments.update(**zipfile_kwargs)
     with zipfile.ZipFile(output_path, **zipfile_arguments) as zipf:
+        if verbose:
+            print(f"Writing the following files to {output_path}")
         # go through directory and write any files
         for file, name in zip(files_to_copy, archive_names):
             zipf.write(file, arcname=name)
+            if verbose:
+                print(": ", name, "<--", file)

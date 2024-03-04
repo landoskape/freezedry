@@ -6,10 +6,10 @@ https://github.com/landoskape/freezedry
 
 from setuptools import setup
 
-description = "A spec-compliant gitignore parser for Python 3.5+"
+description = "A simple package to save a compressed directory."
 setup(
-    name="gitignore_parser",
-    version="0.0.1",
+    name="freezedry",
+    version="0.0.4",
     author="Andrew Landau",
     author_email="andrew+tyler+landau+getridofthisanddtheplusses@gmail.com",
     description=description,
