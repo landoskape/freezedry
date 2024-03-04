@@ -9,7 +9,7 @@ from setuptools import setup
 description = "A simple package to save a compressed directory."
 setup(
     name="freezedry",
-    version="0.0.4",
+    version="0.0.5",
     author="Andrew Landau",
     author_email="andrew+tyler+landau+getridofthisanddtheplusses@gmail.com",
     description=description,

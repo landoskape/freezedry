@@ -33,7 +33,41 @@ any ``.git`` related files and ignoring anything in your ``.gitignore``.
 from freezedry import freezedry
 directory_path = '/..dirs../GitHub/your_repo'
 output_path = '/..dirs../results'
-freezedry(directory_path, output_path=output_path, ignore_git=True, use_gitignore=True, verbose=True)
+freezedry(directory_path, 
+          output_path=output_path, 
+          ignore_git=True, 
+          use_gitignore=True, 
+          verbose=True)
+```
+
+In addition, you can specify which files to ignore in two other ways:
+
+1. Direct match strings with ``extra_ignore``. This is a list of strings, and if any string in
+the list is contained in a file, that file will be ignored. For example, if 
+``extra_ignore=['hi', 'world']`` then ``'../hi/test.py'`` and ``'../myworld.py'`` will be ignored.
+
+2. Regular expression strings with ``regexp_ignore``. This is a list of strings used as regular
+expressions. The rules are similar to ``extra_ignore``, except that it uses the ``re.search`` 
+method to find matches. 
+
+### Setting the .gitignore
+If ``.gitignore`` is not provided, then ``freezedry`` will look for it (non-recursively) in 
+``directory_path``. Alternatively, you can provide a ``.gitignore`` directly with the optional
+argument ``gitignore_path``. Note that you _always_ have to set ``use_gitignore=True`` regardless
+of whether you provided a ``gitignore_path``. 
+
+For example:
+```python
+from freezedry import freezedry
+directory_path = '/..dirs../GitHub/your_repo'
+output_path = '/..dirs../results'
+gitignore_path = '/..dirs../GitHub/my_other_repo/.gitignore'
+freezedry(directory_path, 
+          output_path=output_path, 
+          ignore_git=True, 
+          use_gitignore=True, # if False, won't use gitignore_path even if provided!!! 
+          gitignore_path=gitignore_path, 
+          verbose=True)
 ```
 
 ## Contributing
