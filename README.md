@@ -2,6 +2,13 @@
 A simple method to store a compressed copy of a code repository with customizable filtering of files.
 
 [![PyPI version](https://badge.fury.io/py/freezedry.svg)](https://badge.fury.io/py/freezedry)
+[![Documentation Status](https://readthedocs.org/projects/freezedry/badge/?version=latest)](https://freezedry.readthedocs.io/en/latest/?badge=latest)
+[![Python Versions](https://img.shields.io/pypi/pyversions/freezedry.svg)](https://pypi.org/project/freezedry/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/landoskape/freezedry/actions/workflows/tests.yml/badge.svg)](https://github.com/landoskape/freezedry/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/landoskape/freezedry/branch/main/graph/badge.svg)](https://codecov.io/gh/landoskape/freezedry)
+
+[Full Documentation](https://freezedry.readthedocs.io/) | [GitHub](https://github.com/landoskape/freezedry) | [PyPI](https://pypi.org/project/freezedry/)
 
 Do you ever wish you knew exactly which version of code you used when you made a figure, ran a job
 on a HPC cluster, or anything else? Freezedry is the solution! 
@@ -69,6 +76,10 @@ freezedry(directory_path,
           gitignore_path=gitignore_path, 
           verbose=True)
 ```
+
+## Documentation
+For full documentation, check it out [here](https://freezedry.readthedocs.io/). You'll find a complete
+API reference and more examples of how to use freezedry. 
 
 ## Contributing
 I'm happy to take issues or pull requests, let me know if you have any ideas on how to make this
