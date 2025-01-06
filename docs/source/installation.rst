@@ -3,7 +3,7 @@ Installation
 
 Basic Installation
 -----------------
-LatenPy can be installed using pip:
+Freezedry can be installed using pip:
 
 .. code-block:: bash
 
@@ -11,7 +11,7 @@ LatenPy can be installed using pip:
 
 Development Installation
 -----------------------
-To install LatenPy for development:
+To install Freezedry for development:
 
 1. Clone the repository:
 
