@@ -1,4 +1,3 @@
-import os
 import pytest
 import tempfile
 import zipfile
@@ -143,3 +142,25 @@ def test_invalid_regexp_ignore():
         match_regexp("test.py", "not_a_list")
     with pytest.raises(ValueError):
         match_regexp("test.py", [1, 2, 3])
+
+
+def test_unicode_filenames(temp_directory):
+    """Test handling of Unicode filenames."""
+    unicode_filename = temp_directory / "测试.txt"
+    unicode_filename.write_text("unicode test")
+
+    output_file = temp_directory / "output.zip"
+    freezedry(temp_directory, output_file)
+
+    with zipfile.ZipFile(output_file) as zf:
+        assert "测试.txt" in zf.namelist()
+
+
+def test_zipfile_arguments(temp_directory):
+    """Test custom zipfile arguments."""
+    output_file = temp_directory / "output.zip"
+
+    # Test with different compression methods
+    freezedry(temp_directory, output_file, zipfile_arguments={"compression": zipfile.ZIP_STORED})
+
+    assert output_file.exists()
