@@ -1,7 +1,8 @@
 import os
 import re
 import zipfile
-from typing import List, Optional, Union
+from pathlib import Path
+from typing import List, Optional, Union, Dict, Any
 from gitignore_parser import parse_gitignore
 
 __version__ = "0.1.0"
@@ -125,8 +126,8 @@ def check_ignore(
 
 
 def freezedry(
-    directory_path,
-    output_path: Optional[str] = None,
+    directory_path: Union[str, Path, os.PathLike],
+    output_path: Optional[Union[str, Path, os.PathLike]] = None,
     ignore_git: bool = False,
     use_gitignore: bool = False,
     gitignore_path: Optional[Union[str, bytes, os.PathLike]] = None,
@@ -134,7 +135,7 @@ def freezedry(
     regexp_ignore: Optional[List[str]] = None,
     ignore_by_directory: bool = True,
     verbose: bool = True,
-    **zipfile_kwargs,
+    zipfile_arguments: Optional[Dict[str, Any]] = {},
 ):
     """Create a zip file of the contents of a directory, with filtering options.
 
@@ -143,10 +144,10 @@ def freezedry(
 
     Parameters
     ----------
-    directory_path : str or os.PathLike
-        Path to the directory to compress.
-    output_path : str or os.PathLike, optional
-        Path where the zip file will be saved. If not provided, defaults to
+    directory_path : Union[str, Path, os.PathLike]
+        Path to the directory to compress
+    output_path : Union[str, Path, os.PathLike]
+        Path where the output zip file should be created. If not provided, defaults to
         '<directory_path>/compressed_directory.zip'.
     ignore_git : bool, default=False
         If True, ignores any files with '.git' in their path.
@@ -164,7 +165,7 @@ def freezedry(
         If False, checks each file individually.
     verbose : bool, default=True
         If True, prints names of files as they are added to the zip.
-    **zipfile_kwargs
+    zipfile_arguments : dict, optional
         Additional keyword arguments passed to zipfile.ZipFile constructor.
 
     Returns
@@ -177,6 +178,10 @@ def freezedry(
     AssertionError
         If directory_path is not a directory or if gitignore file is not found
         when use_gitignore=True.
+    ValueError
+        If the input parameters are invalid
+    RuntimeError
+        If there are issues creating the zip file
 
     Examples
     --------
@@ -189,7 +194,7 @@ def freezedry(
     >>> # Custom ignore patterns
     >>> freezedry("my_project", extra_ignore=["__pycache__", ".pyc"])
     """
-    assert "r" != zipfile_kwargs.get("mode")  # cannot be in read mode for writing a new zipfile
+    assert "r" != zipfile_arguments.get("mode")  # cannot be in read mode for writing a new zipfile
     assert os.path.isdir(directory_path), f"{directory_path} is not a directory"
 
     if output_path is None:
@@ -230,9 +235,8 @@ def freezedry(
                 archive_names.append(os.path.relpath(file, directory_path))
 
     # create zip file
-    zipfile_arguments = dict(mode="w", compression=zipfile.ZIP_DEFLATED)
-    zipfile_arguments.update(**zipfile_kwargs)
-    with zipfile.ZipFile(output_path, **zipfile_arguments) as zipf:
+    zipfile_arguments = zipfile_arguments or dict(compression=zipfile.ZIP_DEFLATED)
+    with zipfile.ZipFile(output_path, mode="w", **zipfile_arguments) as zipf:
         if verbose:
             print(f"Writing the following files to {output_path}")
         # go through directory and write any files
