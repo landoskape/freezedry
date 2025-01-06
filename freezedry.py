@@ -4,42 +4,82 @@ import zipfile
 from typing import List, Optional, Union
 from gitignore_parser import parse_gitignore
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 
 def match_git(path: str) -> bool:
-    """simple method for determining if a path is a git-related file or directory"""
+    """Check if a path is a git-related file or directory.
+
+    Parameters
+    ----------
+    path : str
+        File or directory path to check.
+
+    Returns
+    -------
+    bool
+        True if the path contains '.git', False otherwise.
+    """
     return ".git" in path
 
 
 def match_extra(path: str, extra_ignore: List[str]):
-    """simple method for checking if the strings in extra_ignore are contained in path"""
+    """Check if any strings in extra_ignore are contained in the given path.
+
+    Parameters
+    ----------
+    path : str
+        File or directory path to check.
+    extra_ignore : List[str]
+        List of strings to check against the path.
+
+    Returns
+    -------
+    bool
+        True if any string in extra_ignore is found in path, False otherwise.
+
+    Raises
+    ------
+    ValueError
+        If extra_ignore is not a list or contains non-string elements.
+    """
     if not type(extra_ignore) == list:
-        raise ValueError(
-            f"extra_ignore should be a list of strings, but it is a {type(extra_ignore)}"
-        )
+        raise ValueError(f"extra_ignore should be a list of strings, but it is a {type(extra_ignore)}")
     if not all([isinstance(pattern, str) for pattern in extra_ignore]):
         types = list(set([type(pattern).__name__ for pattern in extra_ignore]))
         types_formatted = ", ".join(types)
-        raise ValueError(
-            f"extra_ignore should be a list of strings, but it contains the following types: {types_formatted}"
-        )
+        raise ValueError(f"extra_ignore should be a list of strings, but it contains the following types: {types_formatted}")
     return any([pattern in path for pattern in extra_ignore])
 
 
 def match_regexp(path: str, regexp_ignore: List[str]):
-    """simple method for checking if the regular expressions in regexp_ignore are matched in path"""
+    """Check if any regular expressions in regexp_ignore match the given path.
+
+    Parameters
+    ----------
+    path : str
+        File or directory path to check.
+    regexp_ignore : List[str]
+        List of regular expression patterns to match against the path.
+
+    Returns
+    -------
+    bool
+        True if any pattern in regexp_ignore matches the path, False otherwise.
+
+    Raises
+    ------
+    ValueError
+        If regexp_ignore is not a list or contains non-string elements.
+    """
     if not type(regexp_ignore) == list:
-        raise ValueError(
-            f"extra_ignore should be a list of strings, but it is a {type(regexp_ignore)}"
-        )
+        raise ValueError(f"extra_ignore should be a list of strings, but it is a {type(regexp_ignore)}")
     if not all([isinstance(pattern, str) for pattern in regexp_ignore]):
         types = list(set([type(pattern).__name__ for pattern in regexp_ignore]))
         types_formatted = ", ".join(types)
-        raise ValueError(
-            f"regexp_ignore should be a list of strings, but it contains the following types: {types_formatted}"
-        )
-    return any([re.search(pattern, path) for pattern in regexp_ignore])
+        raise ValueError(f"regexp_ignore should be a list of strings, but it contains the following types: {types_formatted}")
+    matches = [re.search(pattern, path) for pattern in regexp_ignore]
+    return any(matches)
 
 
 def check_ignore(
@@ -49,7 +89,26 @@ def check_ignore(
     extra_ignore: Optional[List[str]] = None,
     regexp_ignore: Optional[List[str]] = None,
 ) -> bool:
-    """returns True if any requested conditions are met"""
+    """Check if a path should be ignored based on multiple filtering criteria.
+
+    Parameters
+    ----------
+    path : str
+        File or directory path to check.
+    ignore_git : bool, default=False
+        If True, checks for git-related paths.
+    gitparser : Optional[object], default=None
+        Gitignore parser object that implements a callable interface.
+    extra_ignore : Optional[List[str]], default=None
+        List of strings to check against the path.
+    regexp_ignore : Optional[List[str]], default=None
+        List of regular expression patterns to match against the path.
+
+    Returns
+    -------
+    bool
+        True if any of the ignore conditions are met, False otherwise.
+    """
     if ignore_git:
         if match_git(path):
             return True
@@ -77,28 +136,58 @@ def freezedry(
     verbose: bool = True,
     **zipfile_kwargs,
 ):
-    """
-    Create a zip file of the contents of a directory, with some filtering of files.
+    """Create a zip file of the contents of a directory, with filtering options.
 
-    Creates a zip file at <output_path> of the entire directory located at <directory_path>.
-    Before making the zip file, will filter the files in <directory_path> based on these rules:
+    This function creates a compressed zip archive of a directory's contents while
+    providing various filtering options to exclude unwanted files and directories.
 
-    1. If ignore_git=True, will ignore any files that have the partial string ".git" in the path.
-    This is generally used to avoid making a copy of the entire git history.
-    2. If use_gitignore, will ignore any files that would be ignored by github as defined in the
-    provided .gitignore file (if none provided, will look for one in <directory_path>).
-    3. If extra_ignore is provided, will ignore any files that contain the strings inside
-    extra_ignore (e.g. if extra_ignore=['hello', 'world'], then 'hello_everyone' would be ignored)
-    4. If regexp_ignore is provided, will ignore any files whose path's are matched by the regular
-    expressions in regexp_ignore.
+    Parameters
+    ----------
+    directory_path : str or os.PathLike
+        Path to the directory to compress.
+    output_path : str or os.PathLike, optional
+        Path where the zip file will be saved. If not provided, defaults to
+        '<directory_path>/compressed_directory.zip'.
+    ignore_git : bool, default=False
+        If True, ignores any files with '.git' in their path.
+    use_gitignore : bool, default=False
+        If True, ignores files based on .gitignore rules.
+    gitignore_path : str or os.PathLike, optional
+        Path to .gitignore file. If not provided but use_gitignore=True,
+        looks for .gitignore in directory_path.
+    extra_ignore : list of str, optional
+        List of strings - files containing any of these strings will be ignored.
+    regexp_ignore : list of str, optional
+        List of regular expressions - files matching any of these will be ignored.
+    ignore_by_directory : bool, default=True
+        If True, ignores all files in a directory that meets ignore criteria.
+        If False, checks each file individually.
+    verbose : bool, default=True
+        If True, prints names of files as they are added to the zip.
+    **zipfile_kwargs
+        Additional keyword arguments passed to zipfile.ZipFile constructor.
 
-    If output path is not provided, will use: <directory_path>/compressed_directory.zip
-    If use_gitignore=True and gitignore_path is not provided, will use <directory_path>/.gitignore
-    If ignore_by_directory=True, then will ignore any files or directories that are children of a
-    directory that meets ignore criterion (otherwise will search in that directory for any files).
-    If verbose=True, will print the name of each file that is stored.
+    Returns
+    -------
+    None
+        Creates a zip file at the specified output_path.
 
-    Any extra kwargs will be passed to the zipfile constructor method.
+    Raises
+    ------
+    AssertionError
+        If directory_path is not a directory or if gitignore file is not found
+        when use_gitignore=True.
+
+    Examples
+    --------
+    >>> # Basic usage
+    >>> freezedry("my_project")
+
+    >>> # Ignore git files and use .gitignore rules
+    >>> freezedry("my_project", ignore_git=True, use_gitignore=True)
+
+    >>> # Custom ignore patterns
+    >>> freezedry("my_project", extra_ignore=["__pycache__", ".pyc"])
     """
     assert "r" != zipfile_kwargs.get("mode")  # cannot be in read mode for writing a new zipfile
     assert os.path.isdir(directory_path), f"{directory_path} is not a directory"
@@ -132,11 +221,10 @@ def freezedry(
                 dirnames[:] = []
         else:
             # Filter files based on specified rules
-            keep_files = [f for f in files if not check_ignore(f, **check_arguments)]
+            path_to_files = [os.path.normpath(os.path.join(dirpath, f)).replace(os.sep, "/") for f in files]
+            keep_files = [f for f in path_to_files if not check_ignore(f, **check_arguments)]
 
-            # Make full path
-            full_files = [os.path.join(dirpath, f) for f in keep_files]
-            for file in full_files:
+            for file in keep_files:
                 # Add file to the copy list
                 files_to_copy.append(file)
                 archive_names.append(os.path.relpath(file, directory_path))
