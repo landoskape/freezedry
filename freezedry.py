@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Optional, Union, Dict, Any
 from gitignore_parser import parse_gitignore
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 def match_git(path: str) -> bool:
