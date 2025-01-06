@@ -4,7 +4,7 @@ import zipfile
 from typing import List, Optional, Union
 from gitignore_parser import parse_gitignore
 
-__version__ = "0.0.6"
+__version__ = "0.1.0"
 
 
 def match_git(path: str) -> bool:
