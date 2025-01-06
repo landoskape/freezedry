@@ -21,6 +21,9 @@ def temp_directory():
         git_dir.mkdir()
         (git_dir / "config").write_text("git config")
 
+        # Create .gitignore file
+        (base_dir / ".gitignore").write_text("*.txt\n__pycache__/\n")
+
         # Create nested directories
         nested_dir = base_dir / "src" / "utils"
         nested_dir.mkdir(parents=True)
@@ -29,17 +32,23 @@ def temp_directory():
         yield base_dir
 
 
-@pytest.fixture
-def temp_gitignore():
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".gitignore", delete=False) as f:
-        f.write("*.txt\n")
-        f.write("__pycache__/\n")
-        return f.name
-
-
 def test_basic_compression(temp_directory):
     output_file = temp_directory / "output.zip"
     freezedry(temp_directory, output_path=output_file)
+
+    assert output_file.exists()
+    with zipfile.ZipFile(output_file) as zf:
+        files = zf.namelist()
+        assert "test.py" in files
+        assert "data.txt" in files
+        assert "src/utils/helper.py" in files
+
+
+def test_empty_output_path(temp_directory):
+    freezedry(temp_directory)
+
+    # Default output file is:
+    output_file = temp_directory / "compressed_directory.zip"
 
     assert output_file.exists()
     with zipfile.ZipFile(output_file) as zf:
@@ -59,9 +68,20 @@ def test_ignore_git(temp_directory):
         assert "test.py" in files
 
 
-def test_gitignore_parsing(temp_directory, temp_gitignore):
+def test_gitignore_parsing(temp_directory):
     output_file = temp_directory / "output.zip"
-    freezedry(temp_directory, output_path=output_file, use_gitignore=True, gitignore_path=temp_gitignore)
+    gitignore_path = temp_directory / ".gitignore"
+    freezedry(temp_directory, output_path=output_file, use_gitignore=True, gitignore_path=gitignore_path)
+
+    with zipfile.ZipFile(output_file) as zf:
+        files = zf.namelist()
+        assert "test.py" in files
+        assert "data.txt" not in files
+
+
+def test_gitignore_parsing_with_empty_gitignore(temp_directory):
+    output_file = temp_directory / "output.zip"
+    freezedry(temp_directory, output_path=output_file, use_gitignore=True)
 
     with zipfile.ZipFile(output_file) as zf:
         files = zf.namelist()
