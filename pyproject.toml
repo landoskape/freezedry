@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "freezedry"
-version = "0.1.1"
+dynamic = ["version"]
 authors = [
     {name = "Andrew Landau", email = "andrew+tyler+landau+getridofthisanddtheplusses@gmail.com"},
 ]
@@ -41,7 +41,10 @@ Homepage = "https://github.com/landoskape/freezedry"
 Documentation = "https://freezedry.readthedocs.io/en/stable/"
 
 [tool.hatch.build]
-include = ["freezedry"]
+include = ["freezedry.py"]
+
+[tool.hatch.version]
+path = "freezedry.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
